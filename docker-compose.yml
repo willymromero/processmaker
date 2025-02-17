@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # PHP/Laravel Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pm4-app
+    restart: unless-stopped
+    environment:
+      - APP_ENV=${APP_ENV}
+      - PHP_MEMORY_LIMIT=1G
+      - COMPOSER_ALLOW_SUPERUSER=1
+    volumes:
+      - .:/var/www
+      - ./storage:/var/www/storage
+      - ./bootstrap/cache:/var/www/bootstrap/cache
+    depends_on:
+      - db
+      - redis
+    networks:
+      - pm4-network
+
+  # Nginx Web Server
+  webserver:
+    image: nginx:alpine
+    container_name: pm4-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+      - "443:443"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./storage/app/public:/var/www/public/storage
+    depends_on:
+      - app
+    networks:
+      - pm4-network
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: pm4-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pm4-mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - pm4-network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis Server
+  redis:
+    image: redis:alpine
+    container_name: pm4-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - pm4-redis-data:/data
+    networks:
+      - pm4-network
+
+  # Node Service for Frontend
+  node:
+    image: node:16.18.1
+    container_name: pm4-node
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    command: sh -c "npm install && npm run dev"
+    networks:
+      - pm4-network
+
+  # Laravel Echo Server for WebSockets
+  echo-server:
+    image: node:16.18.1-alpine
+    container_name: pm4-echo
+    working_dir: /app
+    command: sh -c "npm install -g laravel-echo-server && laravel-echo-server start"
+    ports:
+      - "6001:6001"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    networks:
+      - pm4-network
+
+  # Laravel Horizon for Queue Processing
+  horizon:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pm4-horizon
+    restart: unless-stopped
+    command: php artisan horizon
+    volumes:
+      - .:/var/www
+    depends_on:
+      - redis
+    networks:
+      - pm4-network
+
+networks:
+  pm4-network:
+    driver: bridge
+
+volumes:
+  pm4-mysql-data:
+    driver: local
+  pm4-redis-data:
+    driver: local 
