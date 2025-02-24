@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PHP/Laravel Application
   app:
@@ -105,6 +103,7 @@ services:
     command: php artisan horizon
     volumes:
       - .:/var/www
+      - /var/www/vendor/
     depends_on:
       - redis
     networks:
@@ -118,4 +117,4 @@ volumes:
   pm4-mysql-data:
     driver: local
   pm4-redis-data:
-    driver: local 
+    driver: local

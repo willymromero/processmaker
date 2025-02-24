@@ -1,4 +1,4 @@
-FROM php:8.2-fpm as php
+FROM php:8.3.17-fpm AS php
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,8 +32,14 @@ RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl && \
     imap
 
 # Install ImageMagick
-RUN pecl install imagick && \
-    docker-php-ext-enable imagick
+RUN curl -L -o /tmp/imagick.tar.gz https://github.com/Imagick/imagick/archive/7088edc353f53c4bc644573a79cdcd67a726ae16.tar.gz \
+    && tar --strip-components=1 -xf /tmp/imagick.tar.gz \
+    && phpize \
+    && ./configure \
+    && make \
+    && make install \
+    && echo "extension=imagick.so" > /usr/local/etc/php/conf.d/ext-imagick.ini \
+    && rm -rf /tmp/* 
 
 # Install Redis extension
 RUN pecl install redis && \
@@ -77,7 +83,7 @@ COPY composer.json composer.lock ./
 USER processmaker
 
 # Install composer dependencies
-RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts --no-autoloader
+RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts
 
 # Copy application files
 COPY --chown=processmaker:processmaker . .
