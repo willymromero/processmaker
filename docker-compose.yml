@@ -12,6 +12,7 @@ services:
       - COMPOSER_ALLOW_SUPERUSER=1
     volumes:
       - .:/var/www
+      - /var/www/vendor
       - ./storage:/var/www/storage
       - ./bootstrap/cache:/var/www/bootstrap/cache
     depends_on:

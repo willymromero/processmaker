@@ -83,7 +83,7 @@ COPY composer.json composer.lock ./
 USER processmaker
 
 # Install composer dependencies
-RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts
+RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-scripts --no-autoloader --no-interaction
 
 # Copy application files
 COPY --chown=processmaker:processmaker . .
