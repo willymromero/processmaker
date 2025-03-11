@@ -394,9 +394,10 @@ class ProcessMakerServiceProvider extends ServiceProvider
      */
     public static function forceHttps(): void
     {
-        if (config('app.force_https')) {
-            URL::forceScheme('https');
-        }
+        // TODO: Uncomment this when we have a valid SSL certificate
+        // if (config('app.force_https')) {
+        //     URL::forceScheme('https');
+        // }
     }
 
     /**
