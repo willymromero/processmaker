@@ -50,7 +50,7 @@ RUN pecl install rdkafka && \
     docker-php-ext-enable rdkafka
 
 # Install Node.js 16.18.1
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && \
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     npm install -g npm@8.9
 
@@ -78,6 +78,10 @@ RUN mkdir -p \
 
 # Copy composer files first
 COPY composer.json composer.lock ./
+
+RUN mkdir -p /var/www/public/builds && \
+    chown -R processmaker:processmaker /var/www/public/builds && \
+    chmod -R 775 /var/www/public/builds
 
 # Switch to non-root user
 USER processmaker

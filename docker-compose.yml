@@ -10,12 +10,20 @@ services:
       - APP_ENV=${APP_ENV}
       - PHP_MEMORY_LIMIT=1G
       - COMPOSER_ALLOW_SUPERUSER=1
+      - DB_CONNECTION=${DB_CONNECTION}
+      - DB_HOSTNAME=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - SESSION_SECURE_COOKIE=false
     volumes:
       - .:/var/www
       - /var/www/vendor
       - ./storage:/var/www/storage
       - ./bootstrap/cache:/var/www/bootstrap/cache
     depends_on:
+      - node
       - db
       - redis
     networks:
@@ -47,7 +55,7 @@ services:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: ${DB_USERNAME}
       MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
       - pm4-mysql-data:/var/lib/mysql
     ports:
@@ -70,7 +78,7 @@ services:
 
   # Node Service for Frontend
   node:
-    image: node:16.18.1
+    image: node:18.20.6-alpine
     container_name: pm4-node
     working_dir: /var/www
     volumes:
